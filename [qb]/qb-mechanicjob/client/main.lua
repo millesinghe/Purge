@@ -414,16 +414,13 @@ end
 function spawnObjects(model, position, heading)
     ClearAreaOfObjects(position.x, position.y, position.z, 5.0, 1)
     -- every oilwell exist only on client side!
-    local entity = CreateObject(model, position.x, position.y, position.z, 0, 0, 0)
-    while not DoesEntityExist(entity) do Wait(100) end
-    print("entity>",entity)
-    print("heading>",heading)
-    while not DoesEntityExist(entity) do Wait(10) end
-    SetEntityHeading(entity, 100)
-    SetEntityRotation(entity, 100, 100, 100, 0.0, true)
-    FreezeEntityPosition(entity, true)
-    SetEntityProofs(entity, 0, 0, 1, 1, 1, 1, 1, 1)
-    return entity
+    newentity = CreateObject(model, position.x, position.y, position.z, true)
+    PlaceObjectOnGroundProperly(newentity)
+    print('heading>',heading)
+    SetEntityHeading(newentity, heading-0.00001)
+    -- FreezeEntityPosition(entity, true)
+    -- SetEntityProofs(entity, 0, 0, 1, 1, 1, 1, 1, 1)
+    return newentity
 end
 
 ----
