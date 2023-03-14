@@ -416,10 +416,7 @@ function spawnObjects(model, position, heading)
     -- every oilwell exist only on client side!
     newentity = CreateObject(model, position.x, position.y, position.z, true)
     PlaceObjectOnGroundProperly(newentity)
-    print('heading>',heading)
     SetEntityHeading(newentity, heading-0.00001)
-    -- FreezeEntityPosition(entity, true)
-    -- SetEntityProofs(entity, 0, 0, 1, 1, 1, 1, 1, 1)
     return newentity
 end
 
