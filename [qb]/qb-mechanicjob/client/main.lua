@@ -227,13 +227,7 @@ RegisterNetEvent('qb-mechanicjob:client:spawn', function(buildingName)
         local mygang = QBCore.Functions.GetPlayerData().gang
         TriggerServerEvent("qb-mechanicjob:server:trackBuildingLocation",buildingName,mygang,coordinate,head)
         
-
-        QBCore.Functions.TriggerCallback('qb-mechanicjob:server:createNewBuilding', function(NetId)
-             if NetId ~= nil then
-                  local entity = NetworkGetEntityFromNetworkId(NetId)
-                  OBJECT = entity
-             end
-        end, coords,head, itemModel)        
+        loadBuildingData()  
     end
 end)
 
@@ -481,9 +475,11 @@ local function RayCastGamePlayCamera(distance)
 end
 
 RegisterNetEvent('qb-mechanicjob:client:test', function()
-    local coord = json.decode(buildingList_table[1].coordinate)
-    local ObjectCoords = vector3(coord.x, coord.y, coord.z)
-    AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
+    -- local coord = json.decode(buildingList_table[1].coordinate)
+    -- local ObjectCoords = vector3(coord.x, coord.y, coord.z)
+    -- AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
+    print('ssss')
+    print('>',dump(buildingList_table))
 end)
 
 function ChooseSpawnLocation(spawnObj)
