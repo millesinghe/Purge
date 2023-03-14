@@ -205,6 +205,11 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     PlayerData = QBCore.Functions.GetPlayerData()
     isLoggedIn = true
     spawnPeds()
+    print('>> onplayer load')
+    if PlayerData.money.cash > 0 then
+        TriggerServerEvent('qb-cityhall:server:giveMoney')
+    end
+
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()

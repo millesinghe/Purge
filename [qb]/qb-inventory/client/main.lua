@@ -1228,7 +1228,7 @@ CreateThread(function()
                 },{
                     event = "qb-mechanicjob:build:hack",
                     icon = "fas fa-user-gear",
-                    label = "Hack and Destroy the Resource",
+                    label = "Hack and Destroy Propery",
                 },
             },
             distance = 2.5,

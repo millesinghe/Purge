@@ -102,16 +102,84 @@ RegisterNetEvent('qb-mechanicjob:build:builddismiss', function()
     TriggerEvent("qb-mechanicjob:client:spawn", 'radar')
 end)
 
-RegisterNetEvent('qb-mechanicjob:build:hack', function()
 
-    print("IM hacking now")
+RegisterNetEvent('qb-mechanicjob:build:remove', function(building)
+    QBCore.Functions.Notify("You have 5 seconds to run before the blast", "success")
+    Wait(5000)
+    print(dump(building))
+    table.remove(buildingList_table,building.d)
+    local coord = json.decode(building.coordinate)
+    local ObjectCoords = vector3(coord.x, coord.y, coord.z)
+    AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
+    DeleteEntity(building.entity)
 end)
+
+----
+--- This function will be triggered once the hack is done
+--- @param success boolean
+--- @param bank number | string
+--- @return nil
+function Config.OnHackDone(success)
+    local dist, building = getClosestBuilding(nil)
+    TriggerEvent('mhacking:hide')
+    if not success then return end
+    TriggerEvent('qb-mechanicjob:build:remove', building)
+end
+
+--- This is triggered once the hack at a small bank is done
+--- @param success boolean
+--- @return nil
+local function OnHackDone(success)
+    Config.OnHackDone(success)
+end
+
+RegisterNetEvent('qb-mechanicjob:build:hack', function()
+    local ped = PlayerPedId()
+    if QBCore.Functions.GetPlayerData().job.grade.name ~= 'Engineer' then
+        QBCore.Functions.Notify("You are not an Engineer", "error")
+        return 
+    end
+    local hasItem = QBCore.Functions.HasItem('thermite')
+    if hasItem then
+        print("IM hacking now")
+        
+        local pos = GetEntityCoords(ped)
+        loadAnimDict("anim@gangops@facility@servers@")
+        TaskPlayAnim(ped, 'anim@gangops@facility@servers@', 'hotwire', 3.0, 3.0, -1, 1, 0, false, false, false)
+        QBCore.Functions.Progressbar("hack_gate", "Uploading the destroying code", math.random(5000, 10000), false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true,
+        }, {}, {}, {}, function() -- Done
+            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+            TriggerServerEvent('qb-mechanicjob:server:removeThermite')
+            TriggerEvent("mhacking:show")
+            TriggerEvent("mhacking:start", math.random(6, 7), math.random(22, 25), OnHackDone)
+            TriggerServerEvent("qb-bankrobbery:server:callCops", "small", closestBank, pos)
+            copsCalled = true
+        end, function() -- Cancel
+            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+            QBCore.Functions.Notify(Lang:t("error.cancel_message"), "error")
+        end)
+    else
+        QBCore.Functions.Notify("You need a Thermite", "error")
+    end
+    
+end)
+
+function loadAnimDict(dict)
+    RequestAnimDict(dict)
+    while not HasAnimDictLoaded(dict) do
+        Wait(0)
+    end
+end
 
 function getClosestBuilding(buildingName)
     local closestBuildingIndex = 1
     local closestDistance = 1000000
     for _, building in pairs(buildingList_table) do
-        if buildingName == building.type then
+        if buildingName == nil or buildingName == building.type then
             print(4)
             local pedCoord = GetEntityCoords(PlayerPedId())
             local c = json.decode(building.coordinate)
@@ -338,7 +406,7 @@ function isDestroyedProp(index)
     if buildingList_table[index].entity ~= nil then
         local health = GetEntityHealth(buildingList_table[index].entity)
         if health < 1 then
-            local coord = json.decode(buildingList_table[1].coordinate)
+            local coord = json.decode(buildingList_table[index].coordinate)
             local ObjectCoords = vector3(coord.x, coord.y, coord.z)
             AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
             DeleteEntity(buildingList_table[index].entity)

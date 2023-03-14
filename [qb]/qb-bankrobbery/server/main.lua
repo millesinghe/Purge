@@ -365,8 +365,6 @@ RegisterNetEvent('qb-bankrobbery:server:removeElectronicKit', function()
     if not Player then return end
     Player.Functions.RemoveItem('electronickit', 1)
     TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["electronickit"], "remove")
-    Player.Functions.RemoveItem('trojan_usb', 1)
-    TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["trojan_usb"], "remove")
 end)
 
 RegisterNetEvent('qb-bankrobbery:server:removeBankCard', function(number)
@@ -440,6 +438,8 @@ end)
 
 QBCore.Functions.CreateUseableItem("electronickit", function(source)
     local Player = QBCore.Functions.GetPlayer(source)
+    print('11')
     if not Player or not Player.Functions.GetItemByName('electronickit') then return end
+    print(33)
     TriggerClientEvent("electronickit:UseElectronickit", source)
 end)

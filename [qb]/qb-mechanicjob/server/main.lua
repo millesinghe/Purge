@@ -13,6 +13,15 @@ QBCore.Commands.Add('build', Lang:t("Build a Building"), { { name = "BuildingNam
     TriggerClientEvent("qb-mechanicjob:client:spawn", source, args[1])
 end, 'user')
 
+RegisterNetEvent('qb-mechanicjob:server:removeThermite', function()
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.RemoveItem('thermite', 1)
+    TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["thermite"], "remove")
+end)
+
+
 QBCore.Functions.CreateCallback('qb-mechanicjob:server:createNewBuilding', function(source, cb, coords, head, object)
     local rigmodel = GetHashKey(object)
     local obj = CreateObject(rigmodel, coords.x, coords.y, coords.z, 1, 1, 0)

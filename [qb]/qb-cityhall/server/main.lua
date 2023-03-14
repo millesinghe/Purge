@@ -54,6 +54,18 @@ end)
 
 -- Events
 
+
+
+RegisterNetEvent('qb-cityhall:server:giveMoney', function()
+    
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    local cash = Player.PlayerData.money.cash
+    print("cash>",cash)
+    Player.Functions.RemoveMoney("cash",cash)
+    Player.Functions.AddItem("cash", cash)
+end)
+
 RegisterNetEvent('qb-cityhall:server:requestId', function(item, hall)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)

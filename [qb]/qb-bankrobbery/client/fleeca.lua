@@ -13,7 +13,7 @@ local currentLocker = 0
 
 --- This will reset the bank doors to the position that they should be in, so if the bank is still open, it will open the door and vise versa
 --- @return nil
-local function ResetBankDoors()s
+local function ResetBankDoors()
     for k in pairs(Config.SmallBanks) do
         local object = GetClosestObjectOfType(Config.SmallBanks[k]["coords"]["x"], Config.SmallBanks[k]["coords"]["y"], Config.SmallBanks[k]["coords"]["z"], 5.0, Config.SmallBanks[k]["object"], false, false, false)
         if not Config.SmallBanks[k]["isOpened"] then
@@ -243,52 +243,49 @@ end
 -- Events
 
 RegisterNetEvent('electronickit:UseElectronickit', function()
+    print(22)
     local ped = PlayerPedId()
     local pos = GetEntityCoords(ped)
     Config.OnEvidence(pos, 85)
+    print('1')
     if QBCore.Functions.GetPlayerData().job.grade.name == 'Engineer' then
         if closestBank == 0 or not inElectronickitZone then return end
         QBCore.Functions.TriggerCallback('qb-bankrobbery:server:isRobberyActive', function(isBusy)
-            if not isBusy then
-                if CurrentCops >= Config.MinimumFleecaPolice then
-                    if not Config.SmallBanks[closestBank]["isOpened"] then
-                        local hasItem = Config.HasItem({"trojan_usb", "electronickit"})
-                        if hasItem then
-                            Config.ShowRequiredItems({
-                                [1] = {name = QBCore.Shared.Items["electronickit"]["name"], image = QBCore.Shared.Items["electronickit"]["image"]},
-                                [2] = {name = QBCore.Shared.Items["trojan_usb"]["name"], image = QBCore.Shared.Items["trojan_usb"]["image"]}
-                            }, false)
-                            loadAnimDict("anim@gangops@facility@servers@")
-                            TaskPlayAnim(ped, 'anim@gangops@facility@servers@', 'hotwire', 3.0, 3.0, -1, 1, 0, false, false, false)
-                            QBCore.Functions.Progressbar("hack_gate", Lang:t("general.connecting_hacking_device"), math.random(5000, 10000), false, true, {
-                                disableMovement = true,
-                                disableCarMovement = true,
-                                disableMouse = false,
-                                disableCombat = true,
-                            }, {}, {}, {}, function() -- Done
-                                StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
-                                TriggerServerEvent('qb-bankrobbery:server:removeElectronicKit')
-                                TriggerEvent("mhacking:show")
-                                TriggerEvent("mhacking:start", math.random(6, 7), math.random(22, 25), OnHackDone)
-                                if copsCalled or not Config.SmallBanks[closestBank]["alarm"] then return end
-                                TriggerServerEvent("qb-bankrobbery:server:callCops", "small", closestBank, pos)
-                                copsCalled = true
-                                SetTimeout(60000 * Config.OutlawCooldown, function() copsCalled = false end)
-                            end, function() -- Cancel
-                                StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
-                                QBCore.Functions.Notify(Lang:t("error.cancel_message"), "error")
-                            end)
-                        else
-                            QBCore.Functions.Notify(Lang:t("error.missing_item"), "error")
-                        end
+            if CurrentCops >= Config.MinimumFleecaPolice then
+                if not Config.SmallBanks[closestBank]["isOpened"] then
+                    local hasItem = Config.HasItem({"electronickit"})
+                    if hasItem then
+                        Config.ShowRequiredItems({
+                            [1] = {name = QBCore.Shared.Items["electronickit"]["name"], image = QBCore.Shared.Items["electronickit"]["image"]},
+                        }, false)
+                        loadAnimDict("anim@gangops@facility@servers@")
+                        TaskPlayAnim(ped, 'anim@gangops@facility@servers@', 'hotwire', 3.0, 3.0, -1, 1, 0, false, false, false)
+                        QBCore.Functions.Progressbar("hack_gate", Lang:t("general.connecting_hacking_device"), math.random(5000, 10000), false, true, {
+                            disableMovement = true,
+                            disableCarMovement = true,
+                            disableMouse = false,
+                            disableCombat = true,
+                        }, {}, {}, {}, function() -- Done
+                            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+                            TriggerServerEvent('qb-bankrobbery:server:removeElectronicKit')
+                            TriggerEvent("mhacking:show")
+                            TriggerEvent("mhacking:start", math.random(6, 7), math.random(22, 25), OnHackDone)
+                            if copsCalled or not Config.SmallBanks[closestBank]["alarm"] then return end
+                            TriggerServerEvent("qb-bankrobbery:server:callCops", "small", closestBank, pos)
+                            copsCalled = true
+                            SetTimeout(60000 * Config.OutlawCooldown, function() copsCalled = false end)
+                        end, function() -- Cancel
+                            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+                            QBCore.Functions.Notify(Lang:t("error.cancel_message"), "error")
+                        end)
                     else
-                        QBCore.Functions.Notify(Lang:t("error.bank_already_open"), "error")
+                        QBCore.Functions.Notify(Lang:t("error.missing_item"), "error")
                     end
                 else
-                    QBCore.Functions.Notify(Lang:t("error.minimum_police_required", {police = Config.MinimumFleecaPolice}), "error")
+                    QBCore.Functions.Notify(Lang:t("error.bank_already_open"), "error")
                 end
             else
-                QBCore.Functions.Notify(Lang:t("error.security_lock_active"), "error", 5500)
+                QBCore.Functions.Notify(Lang:t("error.minimum_police_required", {police = Config.MinimumFleecaPolice}), "error")
             end
         end) 
     else
@@ -449,12 +446,10 @@ CreateThread(function()
             if inside and not Config.SmallBanks[i]["isOpened"] then
                 Config.ShowRequiredItems({
                     [1] = {name = QBCore.Shared.Items["electronickit"]["name"], image = QBCore.Shared.Items["electronickit"]["image"]},
-                    [2] = {name = QBCore.Shared.Items["trojan_usb"]["name"], image = QBCore.Shared.Items["trojan_usb"]["image"]}
                 }, true)
             else
                 Config.ShowRequiredItems({
                     [1] = {name = QBCore.Shared.Items["electronickit"]["name"], image = QBCore.Shared.Items["electronickit"]["image"]},
-                    [2] = {name = QBCore.Shared.Items["trojan_usb"]["name"], image = QBCore.Shared.Items["trojan_usb"]["image"]}
                 }, false)
             end
         end)

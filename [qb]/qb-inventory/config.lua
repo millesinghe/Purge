@@ -386,7 +386,7 @@ Config.CraftingTableItems = {
         points = 1,
     },
     [3] = {
-        name = "trojan_usb",
+        name = "thermite",
         amount = 50,
         info = {},
         costs = {
