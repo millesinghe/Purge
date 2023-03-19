@@ -98,20 +98,18 @@ RegisterNetEvent('qb-mechanicjob:build:recycle', function()
     TriggerEvent("qb-mechanicjob:client:spawn", 'recycle')
 end)
 
-RegisterNetEvent('qb-mechanicjob:build:builddismiss', function()
-    TriggerEvent("qb-mechanicjob:client:spawn", 'radar')
-end)
-
-
 RegisterNetEvent('qb-mechanicjob:build:remove', function(building)
     QBCore.Functions.Notify("You have 5 seconds to run before the blast", "success")
     Wait(5000)
     print(dump(building))
-    table.remove(buildingList_table,building.d)
+    print('bid>', building.id)
+    TriggerServerEvent("qb-mechanicjob:server:removeBuilding", building.id)
     local coord = json.decode(building.coordinate)
     local ObjectCoords = vector3(coord.x, coord.y, coord.z)
     AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
     DeleteEntity(building.entity)
+    loadBuildingData()
+    print(dump(buildingList_table))
 end)
 
 ----
@@ -146,7 +144,7 @@ RegisterNetEvent('qb-mechanicjob:build:hack', function()
         local pos = GetEntityCoords(ped)
         loadAnimDict("anim@gangops@facility@servers@")
         TaskPlayAnim(ped, 'anim@gangops@facility@servers@', 'hotwire', 3.0, 3.0, -1, 1, 0, false, false, false)
-        QBCore.Functions.Progressbar("hack_gate", "Uploading the destroying code", math.random(5000, 10000), false, true, {
+        QBCore.Functions.Progressbar("hack_gate", "Attaching a thermite with Circuit Timer", math.random(5000, 10000), false, true, {
             disableMovement = true,
             disableCarMovement = true,
             disableMouse = false,
@@ -201,16 +199,20 @@ RegisterNetEvent('qb-mechanicjob:client:validBuilding',function(buildingName, gr
         local distance, closestBuilding = getClosestBuilding(buildingName)
         local mygang = QBCore.Functions.GetPlayerData().gang
         local myrole = QBCore.Functions.GetPlayerData().job.grade.name
-        print("Job Name>", myrole )
-        print('2>', distance, " - ", mygang, " - ", closestBuilding.teamname)
+ 
         if grantrole == myrole or myrole == "Leader" then
+            print('distance> ', distance)
+            print('closestMargin> ', closestMargin)
+            
+            print('distance < closestMargin > ', distance < closestMargin)
+            print('mygang == closestBuilding.teamname > ', mygang == closestBuilding.teamname)
             if distance < closestMargin and mygang == closestBuilding.teamname then
                 TriggerEvent("inventory:client:proceedaction", buildingName)
             else
-                QBCore.Functions.Notify("Accessible only for " .. grantrole, "error")
+                QBCore.Functions.Notify("This property isn't belongs to your team", "error")
             end      
         else
-            QBCore.Functions.Notify("This property isn't belongs to your team", "error")
+            QBCore.Functions.Notify("Accessible only for " .. grantrole .. "s and Leader", "error")
         end   
     end
     
@@ -218,15 +220,13 @@ end)
 
 
 RegisterNetEvent('qb-mechanicjob:client:spawn', function(buildingName)
-    local itemModel = getModelType(buildingName) 
+    local itemModel, itemAmount = getModelType(buildingName) 
+    print('itemAmount>',itemAmount)
     local coords,head = ChooseSpawnLocation(itemModel)
-    print('my>', PlayerPedId())
-    print('my>', source)
     if coords ~= nil then
         local coordinate = '{ "x":' .. coords.x .. ', "y":' .. coords.y .. ', "z":' .. coords.z .. '}'
         local mygang = QBCore.Functions.GetPlayerData().gang
-        TriggerServerEvent("qb-mechanicjob:server:trackBuildingLocation",buildingName,mygang,coordinate,head)
-        
+        TriggerServerEvent("qb-mechanicjob:server:addBuilding",buildingName,mygang,coordinate,head, itemAmount)
         loadBuildingData()  
     end
 end)
@@ -247,26 +247,35 @@ end
 
 function getModelType(buildingName)
     local modeltype = nil
+    local cost = 0
     if buildingName == 'garage' then
-        modeltype = Config.GarageObject
+        modeltype = Config.Buildings.Garage.structure
+
     elseif buildingName == 'guardpost' then
         modeltype ='prop_air_stair_04a'
     elseif buildingName == 'weapon' then
-        modeltype = Config.WeaponCraft
+        modeltype = Config.Buildings.Weapon.structure
+        cost = Config.Buildings.Weapon.cost
     elseif buildingName == 'hospital' then
-        modeltype = Config.MedicalCamp
+        modeltype = Config.Buildings.Medical.structure
+        cost = Config.Buildings.Medical.cost
     elseif buildingName == 'radar' then
-        modeltype = Config.Radar 
+        modeltype = Config.Buildings.Radar.structure 
+        cost = Config.Buildings.Radar.cost
     elseif buildingName == 'craft' then
-        modeltype = Config.CraftingObject
+        modeltype = Config.Buildings.Craft.structure
+        cost = Config.Buildings.Craft.cost
     elseif buildingName == 'ammo' then
-        modeltype = Config.AmmoCraft
+        modeltype = Config.Buildings.Ammo.structure
+        cost = Config.Buildings.Ammo.cost
     elseif buildingName == 'recycle' then
-        modeltype = Config.Recycle
+        modeltype = Config.Buildings.Recycle.structure
+        cost = Config.Buildings.Recycle.cost
     elseif buildingName == 'ladder' then
-        modeltype = Config.Ladder
+        modeltype = Config.Buildings.Ladder.structure
+        cost = Config.Buildings.Ladder.cost
     end  
-    return modeltype
+    return modeltype,cost
 end
 
 ---
@@ -301,10 +310,10 @@ function addBuildingToList(s_res, id,teamname)
     buildingList_table[id] = s_res
     buildingList_table[id].entity = nil
     if buildingList_table[id].teamname == teamname then
-        local blip_settings = Config.Buildings.CraftingTable.blip
+        local blip_settings = Config.Buildings.Craft.blip
         blip_settings.type = 'teamName_'
         blip_settings.id = id
-        blip_settings.name = '(' ..teamname .. ') ' .. Config.Buildings.CraftingTable.name
+        blip_settings.name = '(' ..teamname .. ') ' .. Config.Buildings.Craft.name
         local c = json.decode(buildingList_table[id].coordinate)
         print(dump(c))
         buildingList_table[id].blip_handle = createCustom(vector3(c.x, c.y, c.z), blip_settings)
@@ -359,7 +368,7 @@ end
 function loadBuildingData()
     Flush_Entities()
     local teamName = QBCore.Functions.GetPlayerData().gang
-    QBCore.Functions.TriggerCallback('qb-mechanicjob:server:getBuildingLocations', function(result)
+    QBCore.Functions.TriggerCallback('qb-mechanicjob:server:getBuildings', function(result)
         -- local Player = QBCore.Functions.GetPlayer(source)
         -- Player.PlayerData.job.gang
           for key, value in pairs(result) do
@@ -405,8 +414,6 @@ function isDestroyedProp(index)
             AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
             DeleteEntity(buildingList_table[index].entity)
             table.remove(buildingList_table,index)
-            buildingList_table[index].entity = nil
-            TriggerServerEvent("qb-mechanicjob:server:destroyBuilding",buildingList_table[index].id)
         end 
     end
 end

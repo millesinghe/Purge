@@ -520,23 +520,7 @@ Config.JobInteractions = {
         -- }
     },
     ["Engineer"] = {
-        {
-            id = 'builddismiss',
-            title = 'Disassemble Building',
-            icon = 'id-card',
-            type = 'client',
-            event = 'qb-mechanicjob:build:builddismiss',
-            shouldClose = true
-        },
-        {
-            id = 'buildghack',
-            title = 'Hack the Building',
-            icon = 'id-card',
-            type = 'client',
-            event = 'qb-mechanicjob:build:buildghack',
-            shouldClose = true
-        }
-        , {
+         {
             id = 'buildings',
             title = 'Build A Resources',
             icon = 'campground',

@@ -2,6 +2,32 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local VehicleStatus = {}
 local VehicleDrivingDistance = {}
 
+RegisterNetEvent('qb-mechanicjob:server:addBuilding', function(buildingName,mygang,coords,head,itemAmount)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    print("buildingName>",buildingName)
+    local myGang = Player.PlayerData.gang
+    print('myGang>',myGang)
+    print('itemAmount>', itemAmount)
+    if Player.Functions.RemoveItem("cash", tonumber(itemAmount)) then
+        MySQL.insert('INSERT INTO purge_building (type, teamname,coordinate,heading) VALUES (?, ?,?, ?)', {buildingName,mygang,tostring(coords),head})
+        TriggerClientEvent('QBCore:Notify', src, itemAmount.."$ cost from team account",'success')
+    else
+        TriggerClientEvent('QBCore:Notify', src, 'Insufficient funds in team bank account', 'error')
+    end
+   
+end)
+
+RegisterNetEvent('qb-mechanicjob:server:removeBuilding', function(buildingid)
+    print(">",buildingid)
+    MySQL.insert('DELETE FROM purge_building where id = ?', {buildingid})   
+end)
+
+QBCore.Functions.CreateCallback('qb-mechanicjob:server:getBuildings', function(source, cb)
+    local buildlocations = MySQL.Sync.fetchAll('SELECT * FROM purge_building', {})
+    cb(buildlocations)
+end)
+
 QBCore.Commands.Add('build', Lang:t("Build a Building"), { { name = "BuildingName", help = "Name of the Building willing to create" } }, true, function(source, args)
     local eng = QBCore.Functions.GetPlayer(source)
     if eng.PlayerData.job.grade.name == 'Engineer' then
@@ -45,24 +71,6 @@ function dump(o)
         return tostring(o)
     end
 end
-
-
-QBCore.Functions.CreateCallback('qb-mechanicjob:server:getBuildingLocations', function(source, cb)
-    print('triggermee')
-    local buildlocations = MySQL.Sync.fetchAll('SELECT * FROM purge_building', {})
-    cb(buildlocations)
-end)
-
-
-RegisterNetEvent('qb-mechanicjob:server:trackBuildingLocation', function(buildingName,mygang,coords,head)
-    print(">",coords)
-    MySQL.insert('INSERT INTO purge_building (type, teamname,coordinate,heading) VALUES (?, ?,?, ?)', {buildingName,mygang,tostring(coords),head})   
-end)
-
-RegisterNetEvent('qb-mechanicjob:server:destroyBuilding', function(id)
-    print(">",id)
-    MySQL.insert('DELETE FROM purge_building where id = ?', {id})   
-end)
 
 QBCore.Commands.Add('t1', Lang:t("command.playermanage.setteam.help"), { }, true, function(source, args)
     TriggerClientEvent("qb-mechanicjob:client:test",source)

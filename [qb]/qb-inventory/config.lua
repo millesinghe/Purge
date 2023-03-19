@@ -21,24 +21,32 @@ Config.BinObjects = {
     "prop_bin_05a",
 }
 
-Config.CraftingObject = "prop_toolchest_05"
-
-Config.MedicalCamp = 'sm_prop_smug_crate_l_medical'
-
-Config.GarageObject = 'prop_elecbox_16'
-
-Config.GarageObject = 'prop_elecbox_16'
-
-Config.WeaponCraft = 'prop_tool_bench02'
-
-Config.Recycle = 'prop_tool_mopbucket'
-
-Config.Ladder = 'prop_steps_big_01'
-
-Config.AmmoCraft = 'p_secret_weapon_02'
-
-Config.Radar = 'prop_satdish_l_02b'
-
+Config.Buildings = {
+    Craft = {
+        structure = 'prop_toolchest_05',
+    },
+    Medical = {
+        structure = 'sm_prop_smug_crate_l_medical',
+    },
+    Garage = {
+        structure = 'prop_elecbox_16',
+    },
+    Weapon = {
+        structure = 'prop_tool_bench02',
+    },
+    Recycle = {
+        structure = 'prop_tool_mopbucket',
+    },
+    Ladder = {
+        structure = 'prop_steps_big_01',
+    },
+    Ammo = {
+        structure = 'p_secret_weapon_02',
+    },
+    Radar = {
+        structure = 'prop_satdish_l_02b',
+    },
+}
 
 Config.VendingItem = {
     [1] = {

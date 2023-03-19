@@ -11,24 +11,8 @@ Config.AuthorizedIds = {
     -- "insertcitizenidhere",
 }
 
-Config.CraftingObject = 'prop_toolchest_05'
-
-Config.MedicalCamp = 'sm_prop_smug_crate_l_medical'
-
-Config.GarageObject = 'prop_elecbox_16'
-
-Config.WeaponCraft = 'prop_tool_bench02'
-
-Config.Recycle = 'prop_tool_mopbucket'
-
-Config.Ladder = 'prop_steps_big_01'
-
-Config.AmmoCraft = 'p_secret_weapon_02'
-
-Config.Radar = 'prop_satdish_l_02b'
-
 Config.Buildings = {
-    CraftingTable = {
+    Craft = {
         name = 'Craft Table',
         blip = {
               sprite = 436,
@@ -37,7 +21,100 @@ Config.Buildings = {
               -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
               -- if scirpt detect this keywords inside string it will replace them.
               name = 'Oil DB_ID_RAW'
-        }
+        },
+        structure = 'prop_toolchest_05',
+        cost = 3000
+    },
+    Medical = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'sm_prop_smug_crate_l_medical',
+        cost = 3000
+    },
+    Garage = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'prop_elecbox_16',
+        cost = 3000
+    },
+    Weapon = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'prop_tool_bench02',
+        cost = 3000
+    },
+    Recycle = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'prop_tool_mopbucket',
+        cost = 3000
+    },
+    Ladder = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'prop_steps_big_01',
+        cost = 3000
+    },
+    Ammo = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'p_secret_weapon_02',
+        cost = 3000
+    },
+    Radar = {
+        name = 'Craft Table',
+        blip = {
+              sprite = 436,
+              colour = 5,
+              range = 'short',
+              -- CITIZENID | OILWELLNAME | DB_ID_RAW | TYPE | OILWELL_HASH
+              -- if scirpt detect this keywords inside string it will replace them.
+              name = 'Oil DB_ID_RAW'
+        },
+        structure = 'prop_satdish_l_02b',
+        cost = 3000
     },
 }
 

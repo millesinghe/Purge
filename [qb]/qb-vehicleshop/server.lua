@@ -119,9 +119,9 @@ RegisterNetEvent('qb-vehicleshop:server:swapVehicle', function(data)
 end)
 
 -- Send customer for test drive
-RegisterNetEvent('qb-vehicleshop:server:customTestDrive', function(vehicle, playerid)
+RegisterNetEvent('qb-vehicleshop:server:customTestDrive', function(vehicle)
     local src = source
-    local target = tonumber(playerid)
+    local target = tonumber(src)
     if not QBCore.Functions.GetPlayer(target) then
         TriggerClientEvent('QBCore:Notify', src, Lang:t('error.Invalid_ID'), 'error')
         return

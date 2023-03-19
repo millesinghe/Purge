@@ -219,7 +219,7 @@ local function ItemsToItemInfo(crafttype)
             [12] = {costs = QBCore.Shared.Items["iron"]["label"] .. ": 50x, " ..QBCore.Shared.Items["steel"]["label"] .. ": 50x, "..QBCore.Shared.Items["screwdriverset"]["label"] .. ": 3x, "..QBCore.Shared.Items["advancedlockpick"]["label"] .. ": 2x."},
         }
         return itemInfos
-    elseif crafttype == 'medCamp' then
+    elseif crafttype == 'hospital' then
         local itemInfos = {
             [1] = {costs = QBCore.Shared.Items["metalscrap"]["label"] .. ": 22x, " ..QBCore.Shared.Items["plastic"]["label"] .. ": 32x."},
             [2] = {costs = QBCore.Shared.Items["metalscrap"]["label"] .. ": 30x, " ..QBCore.Shared.Items["plastic"]["label"] .. ": 42x."},
@@ -326,7 +326,7 @@ local function GetThresholdItems(crafttype)
     local itemlistDetail = nil    
     if crafttype == 'craft' then 
         itemlistDetail = Config.CraftingTableItems    
-    elseif crafttype == 'medCamp' then
+    elseif crafttype == 'hospital' then
         itemlistDetail = Config.MedTableItems  
     elseif crafttype == 'garage' then
         itemlistDetail = Config.GarageTableItems  
@@ -758,13 +758,13 @@ end)
 
 
 RegisterNetEvent('inventory:client:medCampTarget',function()
-    getCloseResource("hosptial")
+    TriggerEvent("qb-mechanicjob:client:validBuilding","hospital","Medic")
     -- if PlayerData.gang = then
     -- end
-    local crafting = {}
-    crafting.label = Lang:t("label.craft")
-    crafting.items = GetThresholdItems("medCamp")
-    TriggerServerEvent("inventory:server:OpenInventory", "crafting", math.random(1, 99), crafting)
+    -- local crafting = {}
+    -- crafting.label = Lang:t("label.craft")
+    -- crafting.items = GetThresholdItems("medCamp")
+    -- TriggerServerEvent("inventory:server:OpenInventory", "crafting", math.random(1, 99), crafting)
 end)
 
 RegisterNetEvent('inventory:client:garageTarget',function()
@@ -1178,20 +1178,20 @@ CreateThread(function()
 end)
 
 
--- Config.MedicalCamp = "sm_prop_smug_crate_l_medical"
+-- Config.Buildings.Medical.structure = "sm_prop_smug_crate_l_medical"
 
--- Config.GarageObject = 'prop_elecbox_16'
+-- Config.Buildings.Garage.structure = 'prop_elecbox_16'
 
--- Config.WeaponCraft = 'p_secret_weapon_02'
+-- Config.Buildings.Weapon.structure = 'p_secret_weapon_02'
 
--- Config.radar = 'prop_satdish_l_02b'
+-- Config.Buildings.Radar.structure = 'prop_satdish_l_02b'
 
 -- Config.itemcraft = 'prop_toolchest_05'
 
 CreateThread(function()
     print("Config.UseTarget>", Config.UseTarget)
     if Config.UseTarget then
-        exports['qb-target']:AddTargetModel(Config.CraftingObject, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Craft.structure, {
             options = {
                 {
                     event = "inventory:client:craftTarget",
@@ -1205,7 +1205,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.MedicalCamp, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Medical.structure, {
             options = {
                 {
                     event = "inventory:client:medCampTarget",
@@ -1219,10 +1219,14 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.GarageObject, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Garage.structure, {
             options = {
                 {
                     event = "inventory:client:garageTarget",
+                    icon = "fas fa-tools",
+                    label = "Get Tools",
+                },{
+                    event = "qb-vehicleshop:client:vehCategories",
                     icon = "fas fa-tools",
                     label = "Manifacture a Vehicles",
                 },{
@@ -1233,7 +1237,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.WeaponCraft, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Weapon.structure, {
             options = {
                 {
                     event = "inventory:client:weaponTarget",
@@ -1243,7 +1247,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.AmmoCraft, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Ammo.structure, {
             options = {
                 {
                     event = "inventory:client:ammoTarget",
@@ -1257,7 +1261,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.Recycle, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Recycle.structure, {
             options = {
                 {
                     event = "inventory:client:recycleTarget",
@@ -1271,7 +1275,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.Radar, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Radar.structure, {
             options = {
                 {
                     event = "inventory:client:radarTarget",
@@ -1285,7 +1289,7 @@ CreateThread(function()
             },
             distance = 2.5,
         })
-        exports['qb-target']:AddTargetModel(Config.Ladder, {
+        exports['qb-target']:AddTargetModel(Config.Buildings.Ladder.structure, {
             options = {
                 {
                     event = "qb-mechanicjob:build:hack",
@@ -1305,7 +1309,7 @@ CreateThread(function()
         while true do
             if LocalPlayer.state['isLoggedIn'] then
                 pos = GetEntityCoords(PlayerPedId())
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.CraftingObject, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Craft.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     print('<>')
@@ -1321,7 +1325,7 @@ CreateThread(function()
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.MedicalCamp, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Medical.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     print('---')
@@ -1331,13 +1335,13 @@ CreateThread(function()
                         if IsControlJustReleased(0, 38) then
                             crafting = {}
                             crafting.label = Lang:t("label.craft")
-                            crafting.items = GetThresholdItems("medcamp")
+                            crafting.items = GetThresholdItems("hospital")
                             TriggerServerEvent("inventory:server:OpenInventory", "crafting", math.random(1, 99), crafting)
                             sleep = 100
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.GarageObject, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Garage.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     if #(pos - objectPos) < 1.5 then
@@ -1352,7 +1356,7 @@ CreateThread(function()
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.WeaponCraft, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Weapon.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     if #(pos - objectPos) < 1.5 then
@@ -1367,7 +1371,7 @@ CreateThread(function()
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.AmmoCraft, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Ammo.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     if #(pos - objectPos) < 1.5 then
@@ -1382,7 +1386,7 @@ CreateThread(function()
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Recycle, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Recycle.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     if #(pos - objectPos) < 1.5 then
@@ -1397,7 +1401,7 @@ CreateThread(function()
                         end
                     end
                 end
-                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Radar, false, false, false)
+                craftObject = GetClosestObjectOfType(pos, 2.0, Config.Buildings.Radar.structure, false, false, false)
                 if craftObject ~= 0 then
                     objectPos = GetEntityCoords(craftObject)
                     if #(pos - objectPos) < 1.5 then
