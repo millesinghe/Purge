@@ -19,8 +19,7 @@ RegisterNetEvent('qb-mechanicjob:server:addBuilding', function(buildingName,myga
 end)
 
 RegisterNetEvent('qb-mechanicjob:server:removeBuilding', function(buildingid)
-    print(">",buildingid)
-    MySQL.insert('DELETE FROM purge_building where id = ?', {buildingid})   
+    MySQL.insert('DELETE FROM purge_building where id = ?', {buildingid})
 end)
 
 QBCore.Functions.CreateCallback('qb-mechanicjob:server:getBuildings', function(source, cb)

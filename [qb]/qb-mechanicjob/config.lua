@@ -7,6 +7,8 @@ Config.Targets = {}
 
 Config.AttachedVehicle = nil
 
+Config.dbSyncTime = 3000
+
 Config.AuthorizedIds = {
     -- "insertcitizenidhere",
 }

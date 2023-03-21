@@ -21,6 +21,16 @@ local buildingList_table = {}
 local dynamicSpawner_state = false
 
 -- Exports
+RegisterNetEvent('qb-mechanicjob:client:getBuildingListByvehicleshop', function()
+    TriggerEvent('qb-vehicleshop:client:setBuildingList',buildingList_table)
+end)
+
+
+RegisterNetEvent('qb-mechanicjob:client:refreshBuildingList', function()
+    Wait(Config.dbSyncTime)
+    loadBuildingData()
+end)
+
 
 local function GetVehicleStatusList(plate)
     local retval = nil
@@ -100,15 +110,14 @@ end)
 
 RegisterNetEvent('qb-mechanicjob:build:remove', function(building)
     QBCore.Functions.Notify("You have 5 seconds to run before the blast", "success")
-    Wait(5000)
-    print(dump(building))
-    print('bid>', building.id)
     TriggerServerEvent("qb-mechanicjob:server:removeBuilding", building.id)
+    Wait(5000)
+    loadBuildingData()
+    print('bid>', building.id)
     local coord = json.decode(building.coordinate)
     local ObjectCoords = vector3(coord.x, coord.y, coord.z)
     AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
     DeleteEntity(building.entity)
-    loadBuildingData()
     print(dump(buildingList_table))
 end)
 
@@ -118,7 +127,7 @@ end)
 --- @param bank number | string
 --- @return nil
 function Config.OnHackDone(success)
-    local dist, building = getClosestBuilding(nil)
+    local dist, building = getClosestBuilding(nil,nil)
     TriggerEvent('mhacking:hide')
     if not success then return end
     TriggerEvent('qb-mechanicjob:build:remove', building)
@@ -173,19 +182,21 @@ function loadAnimDict(dict)
     end
 end
 
-function getClosestBuilding(buildingName)
+function getClosestBuilding(buildingName,team)
     local closestBuildingIndex = 1
     local closestDistance = 1000000
     for _, building in pairs(buildingList_table) do
         if buildingName == nil or buildingName == building.type then
-            print(4)
-            local pedCoord = GetEntityCoords(PlayerPedId())
-            local c = json.decode(building.coordinate)
-            local distance = #((vector3(c.x, c.y, c.z)) - pedCoord)
-            if closestDistance > distance then
-                closestDistance = distance
-                closestBuildingIndex = _
+            if team == nil or team == building.teamname then
+                local pedCoord = GetEntityCoords(PlayerPedId())
+                local c = json.decode(building.coordinate)
+                local distance = #((vector3(c.x, c.y, c.z)) - pedCoord)
+                if closestDistance > distance then
+                    closestDistance = distance
+                    closestBuildingIndex = _
+                end
             end
+            
         end
     end
     return closestDistance, buildingList_table[closestBuildingIndex]
@@ -196,7 +207,7 @@ RegisterNetEvent('qb-mechanicjob:client:validBuilding',function(buildingName, gr
     print(2)
     
     if buildingList_table ~= nil then
-        local distance, closestBuilding = getClosestBuilding(buildingName)
+        local distance, closestBuilding = getClosestBuilding(buildingName, nil)
         local mygang = QBCore.Functions.GetPlayerData().gang
         local myrole = QBCore.Functions.GetPlayerData().job.grade.name
  
@@ -221,12 +232,25 @@ end)
 
 RegisterNetEvent('qb-mechanicjob:client:spawn', function(buildingName)
     local itemModel, itemAmount = getModelType(buildingName) 
-    print('itemAmount>',itemAmount)
+    print('itemModel>',itemModel,' itemAmount>',itemAmount)
     local coords,head = ChooseSpawnLocation(itemModel)
     if coords ~= nil then
         local coordinate = '{ "x":' .. coords.x .. ', "y":' .. coords.y .. ', "z":' .. coords.z .. '}'
         local mygang = QBCore.Functions.GetPlayerData().gang
         TriggerServerEvent("qb-mechanicjob:server:addBuilding",buildingName,mygang,coordinate,head, itemAmount)
+        loadAnimDict("anim@gangops@facility@servers@")
+        TaskPlayAnim(ped, 'anim@gangops@facility@servers@', 'hotwire', 3.0, 3.0, -1, 1, 0, false, false, false)
+        QBCore.Functions.Progressbar("hack_gate", "Constructing " .. buildingName, math.random(3000, 5000), false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true,
+        }, {}, {}, {}, function() -- Done
+            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+        end, function() -- Cancel
+            StopAnimTask(ped, "anim@gangops@facility@servers@", "hotwire", 1.0)
+            QBCore.Functions.Notify("Construction Abort", "error")
+        end)
         loadBuildingData()  
     end
 end)
@@ -250,7 +274,7 @@ function getModelType(buildingName)
     local cost = 0
     if buildingName == 'garage' then
         modeltype = Config.Buildings.Garage.structure
-
+        cost = Config.Buildings.Garage.cost
     elseif buildingName == 'guardpost' then
         modeltype ='prop_air_stair_04a'
     elseif buildingName == 'weapon' then
@@ -369,8 +393,6 @@ function loadBuildingData()
     Flush_Entities()
     local teamName = QBCore.Functions.GetPlayerData().gang
     QBCore.Functions.TriggerCallback('qb-mechanicjob:server:getBuildings', function(result)
-        -- local Player = QBCore.Functions.GetPlayer(source)
-        -- Player.PlayerData.job.gang
           for key, value in pairs(result) do
                addBuildingToList(value, key,teamName)
           end
@@ -395,8 +417,7 @@ function DynamicSpawner()
                 elseif distance > object_spawn_distance and buildingList_table[index].entity ~= nil then
                     DeleteEntity(buildingList_table[index].entity)
                     buildingList_table[index].entity = nil
-                end  
-                isDestroyedProp(index)          
+                end      
             end
             Wait(1250)
         end
@@ -405,18 +426,21 @@ function DynamicSpawner()
     end)
 end
 
-function isDestroyedProp(index)
-    if buildingList_table[index].entity ~= nil then
-        local health = GetEntityHealth(buildingList_table[index].entity)
-        if health < 1 then
-            local coord = json.decode(buildingList_table[index].coordinate)
-            local ObjectCoords = vector3(coord.x, coord.y, coord.z)
-            AddExplosion(ObjectCoords, 5, 100.0, true, false, true)
-            DeleteEntity(buildingList_table[index].entity)
-            table.remove(buildingList_table,index)
-        end 
-    end
-end
+-- function isDestroyedProp(index, needBlast)
+--     if buildingList_table[index].entity ~= nil then
+--         local health = GetEntityHealth(buildingList_table[index].entity)
+--         if health == 0 and needBlast then
+--             local coord = json.decode(buildingList_table[index].coordinate)
+--             local ObjectCoords = vector3(coord.x, coord.y, coord.z)
+--             print('beforeblast>')
+--             print(dump(buildingList_table[index]))
+--             AddExplosion(ObjectCoords, 5, 100.0, true, false, true)     
+--             DeleteEntity(buildingList_table[index].entity)
+--             TriggerServerEvent("qb-mechanicjob:server:removeBuilding", buildingList_table[index].id)
+--             table.remove(buildingList_table,index)                   
+--         end 
+--     end
+-- end
 
 function spawnObjects(model, position, heading)
     ClearAreaOfObjects(position.x, position.y, position.z, 5.0, 1)

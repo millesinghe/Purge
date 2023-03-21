@@ -8,6 +8,7 @@ local testDriveVeh, inTestDrive = 0, false
 local ClosestVehicle = 1
 local zones = {}
 local insideShop, tempShop = nil, nil
+local buildingList_table = {}
 
 -- Handlers
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
@@ -432,25 +433,79 @@ RegisterNetEvent('qb-vehicleshop:client:TestDrive', function()
     end
 end)
 
-RegisterNetEvent('qb-vehicleshop:client:customTestDrive', function(data)
-    if not inTestDrive then
-        inTestDrive = true
-        local vehicle = data
-        local prevCoords = GetEntityCoords(PlayerPedId())
-        tempShop = insideShop -- temp hacky way of setting the shop because it changes after the callback has returned since you are outside the zone
-        QBCore.Functions.TriggerCallback('QBCore:Server:SpawnVehicle', function(netId)
-            local veh = NetToVeh(netId)
-            exports['LegacyFuel']:SetFuel(veh, 100)
-            SetVehicleNumberPlateText(veh, 'TESTDRIVE')
-            SetEntityHeading(veh, Config.Shops[tempShop]["TestDriveSpawn"].w)
-            TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(veh))
-            testDriveVeh = netId
-            QBCore.Functions.Notify(Lang:t('general.testdrive_timenoti', {testdrivetime = Config.Shops[tempShop]["TestDriveTimeLimit"]}))
-        end, vehicle, Config.Shops[tempShop]["TestDriveSpawn"], true)
-        createTestDriveReturn()
-        startTestDriveTimer(Config.Shops[tempShop]["TestDriveTimeLimit"] * 60, prevCoords)
+function dump(o)
+    if type(o) == 'table' then
+        local s = '{ '
+        for k,v in pairs(o) do
+                if type(k) ~= 'number' then k = '"'..k..'"' end
+                s = s .. '['..k..'] = ' .. dump(v) .. ','
+        end
+        return s .. '} '
     else
-        QBCore.Functions.Notify(Lang:t('error.testdrive_alreadyin'), 'error')
+        return tostring(o)
+    end
+end
+
+RegisterNetEvent('qb-vehicleshop:client:setBuildingList', function(data)
+    buildingList_table = data
+end)
+
+function getClosestBuilding(buildingName,team)
+    local closestBuildingIndex = 1
+    local closestDistance = 1000000
+    for _, building in pairs(buildingList_table) do
+        if buildingName == nil or buildingName == building.type then
+            if team == nil or team == building.teamname then
+                local pedCoord = GetEntityCoords(PlayerPedId())
+                local c = json.decode(building.coordinate)
+                local distance = #((vector3(c.x, c.y, c.z)) - pedCoord)
+                if closestDistance > distance then
+                    closestDistance = distance
+                    closestBuildingIndex = _
+                end
+            end
+            
+        end
+    end
+    return closestDistance, closestBuildingIndex
+end
+
+RegisterNetEvent('qb-vehicleshop:client:customTestDrive', function(data)
+    local vehicle = data
+    TriggerEvent('qb-mechanicjob:client:getBuildingListByvehicleshop')
+    
+    local closestMargin = 5
+    
+    if buildingList_table ~= nil then
+        local distance, closestBuildingIndex = getClosestBuilding('garage',nil)
+        local mygang = QBCore.Functions.GetPlayerData().gang
+        local myrole = QBCore.Functions.GetPlayerData().job.grade.name
+        print('mygang>',mygang, " myrole>",myrole , " distance>",distance)
+        print(dump(buildingList_table[closestBuildingIndex]))
+        if "Engineer" == myrole then
+            if distance < closestMargin and mygang == buildingList_table[closestBuildingIndex].teamname then
+                DeleteEntity(buildingList_table[closestBuildingIndex].entity)
+                local coord = json.decode(buildingList_table[closestBuildingIndex].coordinate)
+                local spawnCood = vector4(coord.x, coord.y, coord.z,buildingList_table[closestBuildingIndex].heading) 
+                QBCore.Functions.TriggerCallback('QBCore:Server:SpawnVehicle', function(netId)
+                    local veh = NetToVeh(netId)
+                    exports['LegacyFuel']:SetFuel(veh, 100)
+                    SetVehicleNumberPlateText(veh, mygang)
+                    SetEntityHeading(veh, buildingList_table[closestBuildingIndex].heading)
+                    TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(veh))
+                    testDriveVeh = netId
+                end, vehicle.toVehicle, spawnCood, true)  
+                local removeId =  buildingList_table[closestBuildingIndex].id
+                table.remove(buildingList_table,closestBuildingIndex)
+                TriggerServerEvent("qb-mechanicjob:server:removeBuilding", removeId)
+                TriggerEvent('qb-mechanicjob:client:refreshBuildingList')
+                TriggerEvent('qb-mechanicjob:client:getBuildingListByvehicleshop')
+            else
+                QBCore.Functions.Notify("This property isn't belongs to your team", "error")
+            end      
+        else
+            QBCore.Functions.Notify("Accessible only for Engineers", "error")
+        end   
     end
 end)
 
